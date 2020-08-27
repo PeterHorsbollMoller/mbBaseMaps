@@ -1,0 +1,233 @@
+'*******************************************************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes
+'** 	Program:
+'** 	Modul:
+'**
+'*******************************************************************************
+
+'-------------------------------------
+Include "Enums.def"
+Include "Icons.def"
+Include "MapBasic.def"
+Include "IMapInfoPro.def"
+Include "Menu.def"
+'**default constants...
+Include "Library\MI_ICONS_X64.def"
+Include "Library\Defaults.def"
+Include "Library\RibbonElements.def"
+
+Define xProgram 		"BaseMaps"
+Define xProgramMenu		"BaseMaps"
+Define xVersion 		"1.0"
+Define xYear			"2019"
+Define xAddToMenuBar	FALSE
+
+Define FILE_INI			ApplicationDirectory$() & xProgram & ".ini"
+Define FILE_DBG			ApplicationDirectory$() & xProgram & ".dbg"
+'Define FILE_DLL			ApplicationDirectory$() & xProgram & ".dll"
+Define FILE_PAD			GetFolderPath$(FOLDER_MI_PREFERENCE) & xProgram & ".btp"
+
+'-------------------------------------
+Include "Library\CONFIGFILELib.def"
+Include "Library\DEBUGLib.def"
+Include "Library\ERRORLib.def"
+Include "Library\ProgramInfo.def"
+Include "Library\RIBBONLib.def"
+Include "Library\TABLELib.def"
+
+'-----------------------------------------------------------------------------------------
+Declare Sub Main
+Declare Sub EndProgram
+Declare Sub EndHandler
+
+Declare Sub MENUHideBaseMapControls( ByVal sTabName As String
+							, ByVal sGroupName As String
+							, ByVal sSplitButtonName As String
+							, ByVal sSplitButtonGroupName As String
+							)
+
+'**********************************************************************************************''
+'**   Created by Peter Horsbøll Møller, Pitney Bowes
+'
+'**********************************************************************************************''
+Sub Main
+
+Dim	rbnTab As This,
+	rbnGroup As This,
+	rbnSplitButton As This,
+	rbnSplitButtonGroup As This,
+	rbnControlsColl as This,
+	rbnControlItem As This,
+	rbnTabFound As RefPtr,
+	rbnGroupFound As RefPtr,
+	rbnControlFound As RefPtr,
+	rbnControlGroupFound As RefPtr,
+	nItem, nCtrl, nNumCntrls As Integer,
+	sTabName, sGroupName, sSplitButtonName, sSplitButtonGroupName As string
+
+OnError GoTo ErrorOccured
+
+	'***Initializing ApplicationInfo
+	Call PRGISetApplicationName(xProgram)
+	Call PRGISetApplicationVersion(xVersion)
+	Call PRGISetApplicationCopyrightYear(xYear)
+	Call PRGISetApplicationDevelopedBy("Peter Horsbøll Møller")
+	Call PRGISetApplicationImageUri(MI_IMG_MAP_BASEMAPHYBRID_16)
+
+	'***Enabling Debug if file exists
+	Call DEBUGEnableByFile(FILE_DBG)
+
+	'**HOME tab
+	sTabName				= TAB_HOME
+	sGroupName			= TAB_GROUP_HOME_FILE
+	sSplitButtonName		= "HomeFileOpenGallerySplitButton"
+	sSplitButtonGroupName	= "BaseMaps"
+	Call MENUHideBaseMapControls(sTabName, sGroupName, sSplitButtonName, sSplitButtonGroupName)
+
+	'**TABLE tab
+	sTabName				= TAB_TABLE
+	sGroupName			= TAB_GROUP_TABLE_DATA
+	sSplitButtonName		= "TableFileOpenGallerySplitButton"
+	sSplitButtonGroupName	= "BaseMaps"
+	Call MENUHideBaseMapControls(sTabName, sGroupName, sSplitButtonName, sSplitButtonGroupName)
+
+	'**MAP tab
+	sTabName				= TAB_MAP
+	sGroupName			= TAB_GROUP_MAP_FILE
+	sSplitButtonName		= "MapFileOpenGallerySplitButton"
+	sSplitButtonGroupName	= "BaseMaps"
+	Call MENUHideBaseMapControls(sTabName, sGroupName, sSplitButtonName, sSplitButtonGroupName)
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "Main")
+	Call ERRShow()
+
+End Sub
+
+'****************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes
+'**   Ending MapBasic application
+'****************************************
+Sub EndProgram
+
+OnError GoTo ErrorOccured
+
+	End Program
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "EndProgram")
+	Call ERRShow()
+
+End Sub
+
+'****************************************
+'**   Created by Peter Horsbøll Møller, Pitney Bowes
+'**   Ending MapBasic application
+'****************************************
+Sub EndHandler
+
+OnError GoTo ErrorOccured
+
+	Call RBNEndHandler
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "EndProgram")
+	Call ERRShow()
+
+End Sub
+
+'**********************************************************************************************''
+'Created by Peter Horsbøll Møller, Pitney Bowes
+'Parameters:
+'
+'**********************************************************************************************''
+Sub MENUHideBaseMapControls(	  ByVal sTabName As String
+						, ByVal sGroupName As String
+						, ByVal sSplitButtonName As String
+						, ByVal sSplitButtonGroupName As String
+						)
+
+Dim	rbnTab As This,
+	rbnGroup As This,
+	rbnSplitButton As This,
+	rbnSplitButtonGroup As This,
+	rbnControlsColl as This,
+	rbnControlItem As This,
+	rbnTabFound As RefPtr,
+	rbnGroupFound As RefPtr,
+	rbnControlFound As RefPtr,
+	rbnControlGroupFound As RefPtr,
+	nItem, nCtrl, nNumCntrls As Integer
+
+OnError GoTo ErrorOccured
+
+	Call RBNInitiate
+
+	If RBNGetTab(sTabName, rbnTabFound) Then
+		rbnTab = rbnTabFound
+
+		If RBNTabGetGroupThs(rbnTab, sGroupName, rbnGroupFound) Then
+			rbnGroup = rbnGroupFound
+
+			If RBNGroupGetControlThs(rbnGroup, sSplitButtonName, rbnControlFound) Then
+				rbnSplitButton = rbnControlFound
+
+				If RBNSplitButtonGetGroupThs(rbnSplitButton, sSplitButtonGroupName, rbnControlGroupFound) Then
+					rbnSplitButtonGroup	= rbnControlGroupFound
+
+					'Get Group controls collection
+					rbnControlsColl	= GetCtrlGrpCtrls(rbnSplitButtonGroup)
+					nNumCntrls 		= GetMICtrlCollCount(rbnControlsColl)
+
+					For nItem = (nNumCntrls - 1) To 0 Step -1
+						rbnControlItem	= GetMICtrlCollItemInt(rbnControlsColl, nItem)
+						Do Case GetMICtrlName(rbnControlItem)
+							Case "AddBasemapAerialButton"
+								If CONFIGReadKey(FILE_INI, "BING", "SHOWAERIAL") = "0" Then
+									Call DEBUGPrint("Removing Bing Aerial")
+									Call RBNControlSetVisibilityThs(rbnControlItem, FALSE)
+								End If
+							Case "AddBasemapRoadsButton"
+								If CONFIGReadKey(FILE_INI, "BING", "SHOWROADS") = "0" Then
+									Call DEBUGPrint("Removing Bing Roads")
+									Call RBNControlSetVisibilityThs(rbnControlItem, FALSE)
+								End If
+							Case "AddBasemapHybridButton"
+								If CONFIGReadKey(FILE_INI, "BING", "SHOWHYBRID") = "0" Then
+									Call DEBUGPrint("Removing Bing Hybrid")
+									Call RBNControlSetVisibilityThs(rbnControlItem, FALSE)
+								End If
+
+							Case "AddBasemapGeoMapBronze"
+								If CONFIGReadKey(FILE_INI, "GEOMAP", "SHOWBRONZE") = "0" Then
+									Call DEBUGPrint("Removing GeoMap Bronze")
+									Call RBNControlSetVisibilityThs(rbnControlItem, FALSE)
+								End If
+							Case "AddBasemapGeoMapSteel"
+								If CONFIGReadKey(FILE_INI, "GEOMAP", "SHOWSTEEL") = "0" Then
+									Call DEBUGPrint("Removing GeoMap Steel")
+									Call RBNControlSetVisibilityThs(rbnControlItem, FALSE)
+								End If
+							Case "AddGeoMapIronButton"
+								If CONFIGReadKey(FILE_INI, "GEOMAP", "SHOWIRON") = "0" Then
+									Call DEBUGPrint("Removing GeoMap Iron")
+									Call RBNControlSetVisibilityThs(rbnControlItem, FALSE)
+								End If
+						End Case
+					Next
+				End If
+			End If
+		End If
+	End If
+
+	Exit Sub
+'-------------------------
+ErrorOccured:
+	Call ERRCreate(Err(), Error$(), "PleaseEnterNameOfSubprocedureHere")
+	Call ERRShow()
+
+End Sub
